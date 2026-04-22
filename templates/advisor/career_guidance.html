@@ -1,0 +1,584 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load career_extras %}
+
+{% block title %}Career Guidance Results - Career Advisor{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/career.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="results-page">
+    <div class="results-header">
+        <h1>{{ ui.results_title }}</h1>
+        <p>{{ ui.results_subtitle }}</p>
+        <div style="margin-top: 12px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'edit_profile' %}" class="btn btn-ghost btn-action">
+                <i data-lucide="user" class="icon"></i>
+                <span>{{ ui.update_profile }}</span>
+            </a>
+            <a href="{% url 'logout' %}" class="btn btn-ghost btn-action">
+                <i data-lucide="log-out" class="icon"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="results-container" style="margin-bottom: var(--spacing-lg);">
+        <div class="results-tabs">
+            <a href="{% url 'career_guidance_education' %}"
+               class="btn btn-ghost btn-action results-tab {% if page_type == 'education' %}results-tab-active{% endif %}">
+                Education & Learning Path
+            </a>
+            <a href="{% url 'career_guidance_work' %}"
+               class="btn btn-ghost btn-action results-tab {% if page_type == 'work' %}results-tab-active{% endif %}">
+                Work & Career Path
+            </a>
+        </div>
+    </div>
+
+    {% if ai_error %}
+    <div class="results-container" style="margin-bottom: var(--spacing-lg);">
+        <div class="card" style="border-left: 4px solid #ef4444;">
+            <div style="font-weight: 700; margin-bottom: var(--spacing-xs);">{{ ui.ai_unavailable_title }}</div>
+            <div style="color: var(--gray-600); font-size: 14px;">
+                {{ ui.ai_unavailable_subtitle }} (Details: {{ ai_error }})
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="results-container">
+        {% if page_type == 'work' %}
+        <div class="career-cards">
+            {% for career in career_recommendations %}
+            <div class="career-card">
+                <div class="career-header">
+                    <div>
+                        <h3 class="career-title">{{ career.title }}</h3>
+                    </div>
+                    <span class="match-badge">{{ career.match_percentage }}% Match</span>
+                </div>
+                
+                <div class="match-percentage">
+                    <div class="match-label">
+                        <span>{{ ui.match_score }}</span>
+                        <span>{{ career.match_percentage }}%</span>
+                    </div>
+                    <div class="match-bar">
+                        <div class="match-fill" data-width="{{ career.match_percentage }}"></div>
+                    </div>
+                </div>
+                
+                <div class="career-details">
+                    <div class="detail-section detail-section--why">
+                        <div class="detail-title">
+                            <i data-lucide="target" class="icon"></i>
+                            <span>{{ ui.why_suits }}</span>
+                        </div>
+                        <div class="detail-content detail-content--prose">{{ career.why_suits }}</div>
+                    </div>
+                    
+                    <div class="detail-section detail-section--skills">
+                        <div class="detail-title">
+                            <i data-lucide="briefcase" class="icon"></i>
+                            <span>{{ ui.required_skills }}</span>
+                        </div>
+                        <ul class="skills-grid" role="list" id="skills-list-{{ forloop.counter }}">
+                            {% for skill in career.required_skills|required_skills_list %}
+                            <li class="skill-chip skill-page-item" data-page="auto" style="{% if forloop.counter0 >= 5 %}display:none;{% endif %}">
+                                <span class="skill-chip__icon" aria-hidden="true"><i data-lucide="check" class="icon"></i></span>
+                                <span class="skill-chip__text">{{ skill }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% if career.required_skills|required_skills_list|length > 5 %}
+                        <div class="pagination-controls" style="margin-top: 12px; display: flex; gap: 8px; align-items: center; justify-content: center;">
+                            <button type="button" class="btn btn-ghost btn-sm skills-prev-btn" data-career-idx="{{ forloop.counter }}" disabled style="padding: 10px; min-width: 24px; height: 30px;">
+                                <i data-lucide="chevron-left" class="icon" style="width: 16px; height: 16px; font-weight: bold;"></i>
+                                Previous
+                            </button>
+                            <span class="page-indicator" style="font-size: 14px; color: var(--gray-600);">Page <span class="current-page-num">1</span> of <span class="total-pages">{{ career.required_skills|required_skills_list|length }}</span></span>
+                            <button type="button" class="btn btn-ghost btn-sm skills-next-btn" data-career-idx="{{ forloop.counter }}" style="padding: 10px; min-width: 24px; height: 30px;">
+                                Next
+                                <i data-lucide="chevron-right" class="icon" style="width: 16px; height: 16px; font-weight: bold;"></i>
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="detail-section detail-section--path">
+                        <div class="detail-title">
+                            <i data-lucide="book-open" class="icon"></i>
+                            <span>{{ ui.suggested_learning_path }}</span>
+                        </div>
+                        <ul class="learning-path-list" role="list">
+                            {% for step in career.learning_path|learning_path_steps %}
+                            <li class="learning-path-list__item">
+                                <span class="learning-path-list__bullet" aria-hidden="true"></span>
+                                <span class="learning-path-list__text">{{ step }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="growth-section">
+            <h2 class="section-heading">{{ ui.growth_timeline }}</h2>
+            
+            <div class="timeline-modern" role="list">
+                {% for item in growth_timeline %}
+                <div class="timeline-modern__row" role="listitem">
+                    <div class="timeline-modern__track" aria-hidden="true">
+                        <div class="timeline-modern__marker">
+                            <i data-lucide="{% cycle 'flag' 'trending-up' 'rocket' 'award' %}" class="icon timeline-modern__glyph"></i>
+                        </div>
+                        {% if not forloop.last %}
+                        <div class="timeline-modern__spine"></div>
+                        {% endif %}
+                    </div>
+                    <article class="timeline-modern__card">
+                        <header class="timeline-modern__card-head">
+                            <span class="timeline-modern__step-label">Step {{ forloop.counter }}</span>
+                            <h4 class="timeline-modern__title">{{ item.level }}</h4>
+                        </header>
+                        <p class="timeline-modern__role">{{ item.role }}</p>
+                        <p class="timeline-modern__desc">{{ item.description }}</p>
+                        {% if item.salary %}
+                        <span class="salary-range salary-range--timeline">{{ item.salary }}</span>
+                        {% endif %}
+                    </article>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% elif page_type == 'education' %}
+        <div class="education-section">
+            <h2 class="section-heading">{{ ui.education_learning_path }}</h2>
+            
+            <div class="education-grid">
+                <div class="education-card">
+                    <h3>{{ ui.recommended_degrees }}</h3>
+                    <p>{{ ui.formal_paths }}</p>
+                    <ul class="course-list">
+                        {% for degree in education_path.degrees %}
+                        <li>{{ degree }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <div class="education-card">
+                    <h3>{{ ui.online_certifications }}</h3>
+                    <p>{{ ui.boost_skills }}</p>
+                    <ul class="course-list">
+                        {% for cert in education_path.certifications %}
+                        <li>{{ cert }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <div class="education-card">
+                    <h3>{{ ui.skill_development }}</h3>
+                    <p>{{ ui.focus_areas }}</p>
+                    <ul class="course-list">
+                        {% for skill in education_path.skill_development %}
+                        <li>{{ skill }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="roadmap-flow" id="skill-roadmap">
+                <h3 class="roadmap-flow__title">{{ ui.skill_roadmap }}</h3>
+                <div class="roadmap-flow__canvas">
+                    <svg class="roadmap-flow__svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" viewBox="0 0 200 880" preserveAspectRatio="xMidYMid meet">
+                        <defs>
+                            <linearGradient id="skillRoadmapPathGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#6366f1"/>
+                                <stop offset="45%" stop-color="#7c3aed"/>
+                                <stop offset="100%" stop-color="#4f46e5"/>
+                            </linearGradient>
+                            <filter id="skillRoadmapGlow" x="-80%" y="-20%" width="260%" height="140%" color-interpolation-filters="sRGB">
+                                <feGaussianBlur stdDeviation="5" result="b"/>
+                                <feMerge>
+                                    <feMergeNode in="b"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <path class="roadmap-flow__path-glow" d="M 100 28 C 158 120 158 200 100 268 C 42 336 42 416 100 488 C 158 560 158 640 100 712 C 42 784 42 848 100 852" fill="none" stroke="url(#skillRoadmapPathGrad)" stroke-width="36" stroke-linecap="round" stroke-linejoin="round" opacity="0.22" filter="url(#skillRoadmapGlow)"/>
+                        <path class="roadmap-flow__path-main" d="M 100 28 C 158 120 158 200 100 268 C 42 336 42 416 100 488 C 158 560 158 640 100 712 C 42 784 42 848 100 852" fill="none" stroke="url(#skillRoadmapPathGrad)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path class="roadmap-flow__path-dash" d="M 100 28 C 158 120 158 200 100 268 C 42 336 42 416 100 488 C 158 560 158 640 100 712 C 42 784 42 848 100 852" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="2" stroke-dasharray="7 11" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+                    </svg>
+                    <div class="roadmap-flow__rows">
+                        {% if skill_roadmap_data.beginner %}
+                        <div class="roadmap-flow__row roadmap-flow__row--left">
+                            <div class="roadmap-flow__card-wrap">
+                                <article class="rm-card rm-card--step1">
+                                    <div class="rm-card__icon" aria-hidden="true"><i data-lucide="sprout" class="icon rm-card__glyph"></i></div>
+                                    <div class="rm-card__body">
+                                        <h4 class="rm-card__title">{{ skill_roadmap_data.beginner.title }}</h4>
+                                        <ul class="rm-card__list" id="beginner-skills-list">
+                                            {% for skill in skill_roadmap_data.beginner.skills %}
+                                            <li class="roadmap-skill-item" data-page="auto" style="{% if forloop.counter0 >= 4 %}display:none;{% endif %};">
+                                                <span class="rm-card__check" aria-hidden="true"><i data-lucide="check" class="icon"></i></span>
+                                                <span class="rm-card__text">{{ skill }}</span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                        {% if skill_roadmap_data.beginner.skills|length > 4 %}
+                                        <div class="roadmap-pagination" style="margin-top: 5px; display: flex; gap: 4px; align-items: center; justify-content: center;">
+                                            <button type="button" class="btn btn-ghost btn-sm roadmap-prev-btn" data-stage="beginner" disabled style="padding: 10px; min-width: 24px; height: 30px;">
+                                                <i data-lucide="chevron-left" class="icon" style="width: 16px; height: 16px; font-weight: bold;"></i>
+                                            </button>
+                                            <span class="page-indicator" style="font-size: 12px; color: var(--gray-600);"><span class="current-page-num">1</span>/<span class="total-pages">{{ skill_roadmap_data.beginner.skills|length }}</span></span>
+                                            <button type="button" class="btn btn-ghost btn-sm roadmap-next-btn" data-stage="beginner" style="padding: 10px; min-width: 24px; height: 30px;">
+                                                <i data-lucide="chevron-right" class="icon" style="width: 16px; height: 16px; font-weight: bold;"></i>
+                                            </button>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </article>
+                            </div>
+                            <div class="roadmap-flow__track">
+                                <div class="roadmap-flow__node"><span>1</span></div>
+                            </div>
+                            <div class="roadmap-flow__spacer" aria-hidden="true"></div>
+                        </div>
+                        {% endif %}
+                        {% if skill_roadmap_data.intermediate %}
+                        <div class="roadmap-flow__row roadmap-flow__row--right">
+                            <div class="roadmap-flow__spacer" aria-hidden="true"></div>
+                            <div class="roadmap-flow__track">
+                                <div class="roadmap-flow__node"><span>2</span></div>
+                            </div>
+                            <div class="roadmap-flow__card-wrap">
+                                <article class="rm-card rm-card--step2">
+                                    <div class="rm-card__icon" aria-hidden="true"><i data-lucide="layers" class="icon rm-card__glyph"></i></div>
+                                    <div class="rm-card__body">
+                                        <h4 class="rm-card__title">{{ skill_roadmap_data.intermediate.title }}</h4>
+                                        <ul class="rm-card__list" id="intermediate-skills-list">
+                                            {% for skill in skill_roadmap_data.intermediate.skills %}
+                                            <li class="roadmap-skill-item" data-page="auto" style="{% if forloop.counter0 >= 4 %}display:none;{% endif %};">
+                                                <span class="rm-card__check" aria-hidden="true"><i data-lucide="check" class="icon"></i></span>
+                                                <span class="rm-card__text">{{ skill }}</span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                        {% if skill_roadmap_data.intermediate.skills|length > 4 %}
+                                        <div class="roadmap-pagination" style="margin-top: 5px; display: flex; gap: 4px; align-items: center; justify-content: center;">
+                                            <button type="button" class="btn btn-ghost btn-sm roadmap-prev-btn" data-stage="intermediate" disabled style="padding: 10px; min-width: 24px; height: 30px;">
+                                                <i data-lucide="chevron-left" class="icon" style="width: 16px; height: 16px; font-weight: bold;"></i>
+                                            </button>
+                                            <span class="page-indicator" style="font-size: 12px; color: var(--gray-600);"><span class="current-page-num">1</span>/<span class="total-pages">{{ skill_roadmap_data.intermediate.skills|length }}</span></span>
+                                            <button type="button" class="btn btn-ghost btn-sm roadmap-next-btn" data-stage="intermediate" style="padding: 10px; min-width: 24px; height: 30px;">
+                                                <i data-lucide="chevron-right" class="icon" style="width: 16px; height: 16px; font-weight: bold;"></i>
+                                            </button>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </article>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if skill_roadmap_data.advanced %}
+                        <div class="roadmap-flow__row roadmap-flow__row--left">
+                            <div class="roadmap-flow__card-wrap">
+                                <article class="rm-card rm-card--step3">
+                                    <div class="rm-card__icon" aria-hidden="true"><i data-lucide="rocket" class="icon rm-card__glyph"></i></div>
+                                    <div class="rm-card__body">
+                                        <h4 class="rm-card__title">{{ skill_roadmap_data.advanced.title }}</h4>
+                                        <ul class="rm-card__list" id="advanced-skills-list">
+                                            {% for skill in skill_roadmap_data.advanced.skills %}
+                                            <li class="roadmap-skill-item" data-page="auto" style="{% if forloop.counter0 >= 4 %}display:none;{% endif %};">
+                                                <span class="rm-card__check" aria-hidden="true"><i data-lucide="check" class="icon"></i></span>
+                                                <span class="rm-card__text">{{ skill }}</span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                        {% if skill_roadmap_data.advanced.skills|length > 4 %}
+                                        <div class="roadmap-pagination" style="margin-top: 5px; display: flex; gap: 4px; align-items: center; justify-content: center;">
+                                            <button type="button" class="btn btn-ghost btn-sm roadmap-prev-btn" data-stage="advanced" disabled style="padding: 10px; min-width: 24px; height: 30px;">
+                                                <i data-lucide="chevron-left" class="icon" style="width: 16px; height: 16px; font-weight: bold;"></i>
+                                            </button>
+                                            <span class="page-indicator" style="font-size: 12px; color: var(--gray-600);"><span class="current-page-num">1</span>/<span class="total-pages">{{ skill_roadmap_data.advanced.skills|length }}</span></span>
+                                            <button type="button" class="btn btn-ghost btn-sm roadmap-next-btn" data-stage="advanced" style="padding: 10px; min-width: 24px; height: 30px;">
+                                                <i data-lucide="chevron-right" class="icon" style="width: 16px; height: 16px; font-weight: bold;"></i>
+                                            </button>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </article>
+                            </div>
+                            <div class="roadmap-flow__track">
+                                <div class="roadmap-flow__node"><span>3</span></div>
+                            </div>
+                            <div class="roadmap-flow__spacer" aria-hidden="true"></div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="action-buttons">
+            <a href="{% url 'career_guidance_pdf' %}" class="btn btn-primary btn-action">
+                <i data-lucide="download" class="icon"></i>
+                <span>{{ ui.download_report }}</span>
+            </a>
+            <a href="{% url 'preferences' %}" class="btn btn-secondary btn-action">
+                <i data-lucide="compass" class="icon"></i>
+                <span>{{ ui.explore_another }}</span>
+            </a>
+            <a href="{% url 'career_history' %}" class="btn btn-ghost btn-action">
+                <i data-lucide="clock-3" class="icon"></i>
+                <span>{{ ui.view_history|default:"View History" }}</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.addEventListener('load', function() {
+        const progressBars = document.querySelectorAll('.match-fill');
+        progressBars.forEach(function (bar) {
+            const target = (bar.getAttribute('data-width') || '0') + '%';
+            bar.style.width = '0%';
+            setTimeout(function () { bar.style.width = target; }, 100);
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var root = document.getElementById('skill-roadmap');
+        function revealRoadmap() {
+            if (root) root.classList.add('roadmap-flow--visible');
+        }
+        if (!root) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            revealRoadmap();
+            return;
+        }
+        if (!('IntersectionObserver' in window)) {
+            revealRoadmap();
+            return;
+        }
+        var io = new IntersectionObserver(function (entries, ob) {
+            entries.forEach(function (e) {
+                if (e.isIntersecting) {
+                    revealRoadmap();
+                    ob.disconnect();
+                }
+            });
+        }, { rootMargin: '60px 0px', threshold: 0.06 });
+        io.observe(root);
+        setTimeout(function () {
+            if (root && !root.classList.contains('roadmap-flow--visible')) revealRoadmap();
+        }, 2800);
+        
+        // Initialize roadmap pagination
+        initRoadmapPagination();
+        
+        // Initialize skills pagination
+        initSkillsPagination();
+    });
+    
+    // Roadmap Pagination Logic
+    function initRoadmapPagination() {
+        const stages = ['beginner', 'intermediate', 'advanced'];
+        
+        stages.forEach(function(stage) {
+            const stageList = document.getElementById(`${stage}-skills-list`);
+            if (!stageList) return;
+            
+            const items = stageList.querySelectorAll('.roadmap-skill-item');
+            const totalPagesEl = stageList.parentElement.querySelector('.total-pages');
+            const prevBtns = stageList.parentElement.querySelectorAll(`.roadmap-prev-btn[data-stage="${stage}"]`);
+            const nextBtns = stageList.parentElement.querySelectorAll(`.roadmap-next-btn[data-stage="${stage}"]`);
+            
+            // Calculate page numbers for each item (4 items per page)
+            items.forEach(function(item, index) {
+                const pageNum = Math.floor(index / 4) + 1;
+                item.dataset.page = pageNum;
+            });
+            
+            // Update total pages display
+            const totalPages = Math.ceil(items.length / 4);
+            if (totalPagesEl) {
+                totalPagesEl.textContent = totalPages;
+            }
+            
+            // Hide buttons if only 1 page
+            const paginationContainer = stageList.parentElement.querySelector('.roadmap-pagination');
+            if (paginationContainer && totalPages <= 1) {
+                paginationContainer.style.display = 'none';
+            }
+            
+            prevBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const currentPageEl = stageList.parentElement.querySelector('.current-page-num');
+                    let currentPage = parseInt(currentPageEl.textContent);
+                    
+                    // Hide current page items
+                    items.forEach(function(item) {
+                        if (parseInt(item.dataset.page) === currentPage) {
+                            item.style.display = 'none';
+                        }
+                    });
+                    
+                    // Show previous page
+                    const prevPage = currentPage - 1;
+                    items.forEach(function(item) {
+                        if (parseInt(item.dataset.page) === prevPage) {
+                            item.style.display = 'flex';
+                        }
+                    });
+                    
+                    // Update page number
+                    currentPageEl.textContent = prevPage;
+                    
+                    // Update button states
+                    btn.disabled = true;
+                    const nextBtn = stageList.parentElement.querySelector('.roadmap-next-btn[data-stage="' + stage + '"]');
+                    if (nextBtn) nextBtn.disabled = false;
+                });
+            });
+            
+            nextBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const currentPageEl = stageList.parentElement.querySelector('.current-page-num');
+                    let currentPage = parseInt(currentPageEl.textContent);
+                    const maxPage = totalPages;
+                    
+                    // Hide current page items
+                    items.forEach(function(item) {
+                        if (parseInt(item.dataset.page) === currentPage) {
+                            item.style.display = 'none';
+                        }
+                    });
+                    
+                    // Show next page
+                    const nextPage = currentPage + 1;
+                    items.forEach(function(item) {
+                        if (parseInt(item.dataset.page) === nextPage) {
+                            item.style.display = 'flex';
+                        }
+                    });
+                    
+                    // Update page number
+                    currentPageEl.textContent = nextPage;
+                    
+                    // Update button states
+                    btn.disabled = nextPage >= maxPage;
+                    const prevBtn = stageList.parentElement.querySelector('.roadmap-prev-btn[data-stage="' + stage + '"]');
+                    if (prevBtn) prevBtn.disabled = false;
+                });
+            });
+        });
+    }
+    
+    // Skills Pagination Logic
+    function initSkillsPagination() {
+        const careerIndices = document.querySelectorAll('[id^="skills-list-"]');
+        
+        careerIndices.forEach(function(listContainer) {
+            const careerIdx = listContainer.id.replace('skills-list-', '');
+            const prevBtn = document.querySelector(`.skills-prev-btn[data-career-idx="${careerIdx}"]`);
+            const nextBtn = document.querySelector(`.skills-next-btn[data-career-idx="${careerIdx}"]`);
+            
+            if (!prevBtn || !nextBtn) return;
+            
+            // Calculate and set page numbers for items (5 items per page)
+            const items = listContainer.querySelectorAll('.skill-page-item');
+            const totalPagesEl = listContainer.parentElement.querySelector('.total-pages');
+            
+            items.forEach(function(item, index) {
+                const pageNum = Math.floor(index / 5) + 1;
+                item.dataset.page = pageNum;
+            });
+            
+            // Update total pages display
+            const totalPages = Math.ceil(items.length / 5);
+            if (totalPagesEl) {
+                totalPagesEl.textContent = totalPages;
+            }
+            
+            // Hide pagination if only 1 page
+            const paginationContainer = listContainer.parentElement.querySelector('.pagination-controls');
+            if (paginationContainer && totalPages <= 1) {
+                paginationContainer.style.display = 'none';
+            }
+            
+            prevBtn.addEventListener('click', function() {
+                const skillsList = document.getElementById(`skills-list-${careerIdx}`);
+                if (!skillsList) return;
+                
+                const pageIndicator = skillsList.parentElement.querySelector('.current-page-num');
+                const skillItems = skillsList.querySelectorAll('.skill-page-item');
+                let currentPage = parseInt(pageIndicator.textContent);
+                
+                // Hide current page items
+                skillItems.forEach(function(item) {
+                    if (parseInt(item.dataset.page) === currentPage) {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                // Show previous page
+                const prevPage = currentPage - 1;
+                skillItems.forEach(function(item) {
+                    if (parseInt(item.dataset.page) === prevPage) {
+                        item.style.display = 'flex';
+                    }
+                });
+                
+                // Update page number
+                pageIndicator.textContent = prevPage;
+                
+                // Update button states
+                prevBtn.disabled = true;
+                if (currentPage < totalPages) {
+                    nextBtn.disabled = false;
+                }
+            });
+            
+            nextBtn.addEventListener('click', function() {
+                const skillsList = document.getElementById(`skills-list-${careerIdx}`);
+                if (!skillsList) return;
+                
+                const pageIndicator = skillsList.parentElement.querySelector('.current-page-num');
+                const skillItems = skillsList.querySelectorAll('.skill-page-item');
+                let currentPage = parseInt(pageIndicator.textContent);
+                
+                // Hide current page items
+                skillItems.forEach(function(item) {
+                    if (parseInt(item.dataset.page) === currentPage) {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                // Show next page
+                const nextPage = currentPage + 1;
+                skillItems.forEach(function(item) {
+                    if (parseInt(item.dataset.page) === nextPage) {
+                        item.style.display = 'flex';
+                    }
+                });
+                
+                // Update page number
+                pageIndicator.textContent = nextPage;
+                
+                // Update button states
+                prevBtn.disabled = false;
+                nextBtn.disabled = nextPage >= totalPages;
+            });
+        });
+    }
+</script>
+{% endblock %}

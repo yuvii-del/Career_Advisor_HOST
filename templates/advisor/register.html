@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Account - Career & Educational Advisor{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <div class="profile-header">
+        <h1>{{ ui.create_account }}</h1>
+        <p>Create your account once. We will save your profile details for future suggestions.</p>
+    </div>
+
+    <div class="form-container">
+        <form method="post" action="{% url 'register' %}">
+            {% csrf_token %}
+
+            {% if messages %}
+                <div class="section-card" style="margin-bottom: var(--spacing-md);">
+                    {% for message in messages %}
+                        <p style="color: #b91c1c; margin-bottom: 6px;">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="section-card">
+                <h2 class="section-title">Account Details</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="full_name">{{ ui.full_name }} *</label>
+                        <input type="text" id="full_name" name="full_name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="email">{{ ui.email_or_username }} *</label>
+                        <input type="email" id="email" name="email" class="form-input" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="password">{{ ui.password }} *</label>
+                        <input type="password" id="password" name="password" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="confirm_password">Confirm Password *</label>
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-input" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2 class="section-title">Basic Details</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">{{ ui.age }} *</label>
+                        <input type="number" class="form-input" name="age" min="16" max="30" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ ui.gender }} *</label>
+                        <select class="form-input" name="gender" required>
+                            <option value="">{{ ui.select_gender }}</option>
+                            <option value="male">{{ ui.male }}</option>
+                            <option value="female">{{ ui.female }}</option>
+                            <option value="other">{{ ui.other }}</option>
+                            <option value="prefer-not-to-say">{{ ui.prefer_not_to_say }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">{{ ui.city_state }} *</label>
+                        <input type="text" class="form-input" name="location" placeholder="{{ ui.location_placeholder }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ ui.preferred_language }} *</label>
+                        <select class="form-input" name="language" required>
+                            <option value="">{{ ui.select_language }}</option>
+                            <option value="english">{{ ui.english }}</option>
+                            <option value="tamil">{{ ui.tamil }}</option>
+                            <option value="both">{{ ui.both }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2 class="section-title">Academic Details</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">{{ ui.school_board }} *</label>
+                        <select class="form-input" name="school_board" required>
+                            <option value="">{{ ui.select_board }}</option>
+                            <option value="cbse">CBSE</option>
+                            <option value="icse">ICSE</option>
+                            <option value="state_board">State Board</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ ui.tenth_percentage }} *</label>
+                        <input type="number" class="form-input" name="tenth_percentage" min="0" max="100" step="0.01" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">{{ ui.twelfth_stream }} *</label>
+                        <select class="form-input" name="twelfth_stream" required>
+                            <option value="">{{ ui.select_stream }}</option>
+                            <option value="science">{{ ui.science }}</option>
+                            <option value="commerce">{{ ui.commerce }}</option>
+                            <option value="arts">{{ ui.arts }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ ui.twelfth_specialization }} *</label>
+                        <select class="form-input" name="twelfth_specialization" required>
+                            <option value="">{{ ui.select_specialization }}</option>
+                            <option value="pcm">PCM (Physics, Chemistry, Mathematics)</option>
+                            <option value="pcb">PCB (Physics, Chemistry, Biology)</option>
+                            <option value="commerce">Commerce</option>
+                            <option value="humanities">Humanities</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">{{ ui.twelfth_percentage }} *</label>
+                        <input type="number" class="form-input" name="twelfth_percentage" min="0" max="100" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ ui.current_course }}</label>
+                        <input type="text" class="form-input" name="current_course" placeholder="{{ ui.current_course_placeholder }}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">{{ ui.subjects_multiselect }}</label>
+                    <div class="tags-container" id="subjectsContainer">
+                        <span class="tag" data-value="math">Mathematics</span>
+                        <span class="tag" data-value="computer-science">Computer Science</span>
+                        <span class="tag" data-value="physics">Physics</span>
+                        <span class="tag" data-value="chemistry">Chemistry</span>
+                        <span class="tag" data-value="biology">Biology</span>
+                        <span class="tag" data-value="accounting">Accountancy</span>
+                        <span class="tag" data-value="economics">Economics</span>
+                    </div>
+                    <input type="hidden" name="subjects" id="subjectsInput">
+                </div>
+            </div>
+
+            <div class="form-navigation">
+                <a href="{% url 'login' %}" class="btn btn-secondary btn-nav">{{ ui.back_to_login }}</a>
+                <button type="submit" class="btn btn-primary btn-nav">
+                    <i data-lucide="user-plus" class="icon"></i>
+                    <span>{{ ui.create_account }}</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const container = document.getElementById('subjectsContainer');
+        const input = document.getElementById('subjectsInput');
+        const selected = [];
+
+        if (!container || !input) return;
+
+        container.querySelectorAll('.tag').forEach(tag => {
+            tag.addEventListener('click', function () {
+                this.classList.toggle('selected');
+                const value = this.getAttribute('data-value');
+                if (this.classList.contains('selected')) {
+                    selected.push(value);
+                } else {
+                    const idx = selected.indexOf(value);
+                    if (idx > -1) selected.splice(idx, 1);
+                }
+                input.value = selected.join(',');
+            });
+        });
+    })();
+</script>
+{% endblock %}

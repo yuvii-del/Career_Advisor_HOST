@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profile Analysis - Career Advisor{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <div class="profile-header">
+        <p style="margin-bottom: var(--spacing-sm);"><a href="{% url 'login' %}" style="color: var(--primary-blue); text-decoration: none;">{{ ui.back_to_login }}</a></p>
+        <h1>{{ ui.profile_analysis }}</h1>
+        <p>{{ ui.profile_subtitle }}</p>
+    </div>
+    
+    <div class="progress-container">
+        <div class="progress-steps">
+            <div class="step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">{{ ui.basic_details }}</div>
+                <div class="step-line"></div>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">{{ ui.educational_details }}</div>
+                <div class="step-line"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-container">
+        <form id="profileForm" method="post" action="{% url 'career_guidance' %}">
+            {% csrf_token %}
+            
+            <div class="form-section active" id="section1">
+                <div class="section-card">
+                    <h2 class="section-title">{{ ui.basic_details }}</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">{{ ui.full_name }} *</label>
+                            <input type="text" class="form-input" name="full_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{{ ui.age }} *</label>
+                            <input type="number" class="form-input" name="age" min="16" max="30" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">{{ ui.gender }} *</label>
+                            <select class="form-input" name="gender" required>
+                                <option value="">{{ ui.select_gender }}</option>
+                                <option value="male">{{ ui.male }}</option>
+                                <option value="female">{{ ui.female }}</option>
+                                <option value="other">{{ ui.other }}</option>
+                                <option value="prefer-not-to-say">{{ ui.prefer_not_to_say }}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{{ ui.city_state }} *</label>
+                            <input type="text" class="form-input" name="location" placeholder="{{ ui.location_placeholder }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">{{ ui.preferred_language }} *</label>
+                            <select class="form-input" name="language" required>
+                                <option value="">{{ ui.select_language }}</option>
+                                <option value="english">{{ ui.english }}</option>
+                                <option value="tamil">{{ ui.tamil }}</option>
+                                <option value="both">{{ ui.both }}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{{ ui.career_interest_level }} *</label>
+                            <select class="form-input" name="interest_level" required>
+                                <option value="">{{ ui.select_level }}</option>
+                                <option value="beginner">{{ ui.beginner }}</option>
+                                <option value="exploring">{{ ui.exploring }}</option>
+                                <option value="focused">{{ ui.focused }}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-navigation">
+                    <div></div>
+                    <button type="button" class="btn btn-primary btn-nav" onclick="nextSection()">
+                        <i data-lucide="arrow-right" class="icon"></i>
+                        <span>{{ ui.next_educational }}</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-section" id="section2">
+                <div class="section-card">
+                    <h2 class="section-title">{{ ui.educational_details }}</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">{{ ui.school_board }} *</label>
+                            <select class="form-input" name="school_board" required>
+                                <option value="">{{ ui.select_board }}</option>
+                                <option value="cbse">CBSE</option>
+                                <option value="icse">ICSE</option>
+                                <option value="state_board">State Board</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{{ ui.tenth_percentage }} *</label>
+                            <input type="number" class="form-input" name="tenth_percentage" min="0" max="100" step="0.01" placeholder="{{ ui.tenth_placeholder }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">{{ ui.twelfth_stream }} *</label>
+                            <select class="form-input" name="twelfth_stream" required>
+                                <option value="">{{ ui.select_stream }}</option>
+                                <option value="science">{{ ui.science }}</option>
+                                <option value="commerce">{{ ui.commerce }}</option>
+                                <option value="arts">{{ ui.arts }}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{{ ui.twelfth_specialization }} *</label>
+                            <select class="form-input" name="twelfth_specialization" required>
+                                <option value="">{{ ui.select_specialization }}</option>
+                                <option value="pcm">PCM (Physics, Chemistry, Mathematics)</option>
+                                <option value="pcb">PCB (Physics, Chemistry, Biology)</option>
+                                <option value="commerce">Commerce</option>
+                                <option value="humanities">Humanities</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">{{ ui.twelfth_percentage }} *</label>
+                            <input type="number" class="form-input" name="twelfth_percentage" min="0" max="100" step="0.01" placeholder="{{ ui.twelfth_placeholder }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{{ ui.current_course }}</label>
+                            <input type="text" class="form-input" name="current_course" placeholder="{{ ui.current_course_placeholder }}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">{{ ui.subjects_multiselect }}</label>
+                        <div class="tags-container" id="subjectsContainer">
+                            <span class="tag" data-value="math">Mathematics</span>
+                            <span class="tag" data-value="computer-science">Computer Science</span>
+                            <span class="tag" data-value="physics">Physics</span>
+                            <span class="tag" data-value="chemistry">Chemistry</span>
+                            <span class="tag" data-value="biology">Biology</span>
+                            <span class="tag" data-value="accounting">Accountancy</span>
+                            <span class="tag" data-value="economics">Economics</span>
+                        </div>
+                        <input type="hidden" name="subjects" id="subjectsInput">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">{{ ui.skills_multiselect }}</label>
+                        <div class="tags-container" id="skillsContainer">
+                            <span class="tag" data-value="programming">Programming</span>
+                            <span class="tag" data-value="design">Design</span>
+                            <span class="tag" data-value="communication">Communication</span>
+                            <span class="tag" data-value="leadership">Leadership</span>
+                            <span class="tag" data-value="analytical">Analytical Thinking</span>
+                            <span class="tag" data-value="creative">Creative Writing</span>
+                            <span class="tag" data-value="problem-solving">Problem Solving</span>
+                            <span class="tag" data-value="teamwork">Teamwork</span>
+                        </div>
+                        <input type="hidden" name="skills" id="skillsInput">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">{{ ui.strengths_multiselect }}</label>
+                        <div class="tags-container" id="strengthsContainer">
+                            <span class="tag" data-value="logical">Logical</span>
+                            <span class="tag" data-value="creative">Creative</span>
+                            <span class="tag" data-value="communication">Communication</span>
+                            <span class="tag" data-value="leadership">Leadership</span>
+                            <span class="tag" data-value="technical">Technical</span>
+                            <span class="tag" data-value="artistic">Artistic</span>
+                        </div>
+                        <input type="hidden" name="strengths" id="strengthsInput">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">{{ ui.interests_multiselect }}</label>
+                        <div class="tags-container" id="interestsContainer">
+                            <span class="tag" data-value="ai">AI & Machine Learning</span>
+                            <span class="tag" data-value="web-dev">Web Development</span>
+                            <span class="tag" data-value="medicine">Medicine</span>
+                            <span class="tag" data-value="business">Business</span>
+                            <span class="tag" data-value="govt-jobs">Government Jobs</span>
+                            <span class="tag" data-value="engineering">Engineering</span>
+                            <span class="tag" data-value="finance">Finance</span>
+                            <span class="tag" data-value="design">Design</span>
+                            <span class="tag" data-value="education">Education</span>
+                            <span class="tag" data-value="research">Research</span>
+                        </div>
+                        <input type="hidden" name="interests" id="interestsInput">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">{{ ui.other_interest }}</label>
+                        <input type="text" class="form-input" name="other_interest" id="otherInterestInput" placeholder="{{ ui.other_interest_placeholder }}">
+                    </div>
+                </div>
+                
+                <div class="form-navigation">
+                    <button type="button" class="btn btn-secondary btn-nav" onclick="prevSection()">
+                        <i data-lucide="arrow-left" class="icon"></i>
+                        <span>{{ ui.back }}</span>
+                    </button>
+                    <button type="submit" class="btn btn-primary btn-nav btn-analyze" id="analyzeBtn">
+                        <i data-lucide="search" class="icon"></i>
+                        <span>{{ ui.analyze_profile }}</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentSection = 1;
+    const totalSections = 2;
+    
+    function initTagSelection() {
+        ['subjects', 'skills', 'strengths', 'interests'].forEach(type => {
+            const container = document.getElementById(type + 'Container');
+            const input = document.getElementById(type + 'Input');
+            const tags = container.querySelectorAll('.tag');
+            const selected = [];
+            
+            tags.forEach(tag => {
+                tag.addEventListener('click', function() {
+                    this.classList.toggle('selected');
+                    const value = this.getAttribute('data-value');
+                    if (this.classList.contains('selected')) {
+                        selected.push(value);
+                    } else {
+                        const index = selected.indexOf(value);
+                        if (index > -1) selected.splice(index, 1);
+                    }
+                    input.value = selected.join(',');
+                });
+            });
+        });
+    }
+    
+    function updateProgress() {
+        document.querySelectorAll('.step').forEach((step, index) => {
+            const stepNum = index + 1;
+            step.classList.remove('active', 'completed');
+            if (stepNum < currentSection) step.classList.add('completed');
+            else if (stepNum === currentSection) step.classList.add('active');
+        });
+    }
+    
+    function nextSection() {
+        const currentForm = document.getElementById('section' + currentSection);
+        const inputs = currentForm.querySelectorAll('input[required], select[required]');
+        let isValid = true;
+        
+        inputs.forEach(input => {
+            if (!input.value.trim()) {
+                isValid = false;
+                input.style.borderColor = '#ef4444';
+                setTimeout(() => { input.style.borderColor = ''; }, 2000);
+            }
+        });
+        
+        if (isValid && currentSection < totalSections) {
+            currentForm.classList.remove('active');
+            currentSection++;
+            document.getElementById('section' + currentSection).classList.add('active');
+            updateProgress();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+    
+    function prevSection() {
+        if (currentSection > 1) {
+            document.getElementById('section' + currentSection).classList.remove('active');
+            currentSection--;
+            document.getElementById('section' + currentSection).classList.add('active');
+            updateProgress();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+    
+    document.getElementById('profileForm').addEventListener('submit', function() {
+        const btn = document.getElementById('analyzeBtn');
+        btn.textContent = '{{ ui.analyzing }}';
+        btn.disabled = true;
+    });
+    
+    initTagSelection();
+    updateProgress();
+</script>
+
+{% include 'advisor/includes/chatbot_widget.html' %}
+{% endblock %}
