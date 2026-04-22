@@ -59,7 +59,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'career_advisor.wsgi.application'
+WSGI_APPLICATION = 'Career_Advisor_HOST.wsgi.application'
 
 DATABASES = {
     'default': {
